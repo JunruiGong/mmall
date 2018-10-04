@@ -71,10 +71,11 @@ public class ShippingController {
         return iShippingService.select(user.getId(), shippingId);
     }
 
-
-    public ServerResponse<PageInfo> list(@RequestParam(value = "pageNum",defaultValue = "1") int pageNum,
-                                         @RequestParam(value = "pageSize",defaultValue = "10") int pageSize,
-                                         HttpSession session){
+    @RequestMapping("list.do")
+    @ResponseBody
+    public ServerResponse<PageInfo> list(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+                                         @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
+                                         HttpSession session) {
         User user = (User) session.getAttribute(Const.CURRENT_USER);
         if (user == null) {
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登录");
@@ -83,9 +84,4 @@ public class ShippingController {
         return iShippingService.list(user.getId(), pageNum, pageSize);
 
     }
-
-
-
-
-
 }
