@@ -11,6 +11,7 @@ import com.mmall.util.BigDecimalUtil;
 import com.mmall.util.DateTimeUtil;
 import com.mmall.util.PropertiesUtil;
 import com.mmall.vo.OrderItemVo;
+import com.mmall.vo.OrderProductVo;
 import com.mmall.vo.OrderVo;
 import com.mmall.vo.ShippingVo;
 import com.sun.tools.classfile.ConstantPool;
@@ -82,7 +83,7 @@ public class OrderServiceImpl implements IOrderService {
         this.clearCart(cartList);
 
         //返回给前端数据
-        OrderVo orderVo = assembleOrderVo(order,orderItemList);
+        OrderVo orderVo = assembleOrderVo(order, orderItemList);
         return ServerResponse.createBySuccess(orderVo);
 
     }
@@ -249,6 +250,65 @@ public class OrderServiceImpl implements IOrderService {
         }
 
         return ServerResponse.createBySuccess(orderItemList);
+    }
+
+
+    public ServerResponse<String> cancelOrder(Integer userId, Long orderNo) {
+        Order order = orderMapper.selectByUserIdOrderNo(userId, orderNo);
+
+        if (order == null) {
+            return ServerResponse.createByErrorMessage("找不到该订单");
+        }
+
+        if (order.getStatus() != Const.OrderStatusEnum.NO_PAY.getCode()) {
+            return ServerResponse.createByErrorMessage("已付款，无法取消订单");
+        }
+
+        Order updateOrder = new Order();
+
+        updateOrder.setId(order.getId());
+        updateOrder.setStatus(order.getStatus());
+        int row = orderMapper.updateByPrimaryKeySelective(updateOrder);
+
+        if (row > 0) {
+            return ServerResponse.createBySuccess();
+        }
+
+        return ServerResponse.createByErrorMessage("取消订单失败");
+
+
+    }
+
+    public ServerResponse getOrderCartProduct(Integer userId) {
+        OrderProductVo orderProductVo = new OrderProductVo();
+
+        //从购物车中获取数据
+
+        List<Cart> cartList = cartMapper.selectCheckedCartByUserId(userId);
+
+        ServerResponse serverResponse = this.getCartOrderItem(userId, cartList);
+
+        if (!serverResponse.isSuccess()) {
+            return serverResponse;
+        }
+
+        List<OrderItem> orderItemList = (List<OrderItem>) serverResponse.getData();
+
+        List<OrderItemVo> orderItemVoList = Lists.newArrayList();
+
+        BigDecimal payment = new BigDecimal("0");
+
+        for (OrderItem orderItem : orderItemList) {
+
+            payment = BigDecimalUtil.add(payment.doubleValue(), orderItem.getTotalPrice().doubleValue());
+            orderItemVoList.add(assembleOrderItemVo(orderItem));
+        }
+
+        orderProductVo.setProductTotalPrice(payment);
+        orderProductVo.setOrderItemVoList(orderItemVoList);
+        orderProductVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix"));
+        return ServerResponse.createBySuccess(orderProductVo);
+
     }
 
 
