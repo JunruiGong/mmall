@@ -85,7 +85,6 @@ public class CategoryServiceImpl implements ICategoryService {
         if (categoryId != null) {
             for (Category categoryItem : categorySet) {
                 categoryIdList.add(categoryItem.getId());
-
             }
         }
 
@@ -104,7 +103,6 @@ public class CategoryServiceImpl implements ICategoryService {
         List<Category> categoryList = categoryMapper.selectCategoryChildrenByParentId(categoryId);
         for (Category categoryItem : categoryList) {
             findChildCategory(categorySet, categoryItem.getId());
-
         }
 
         return categorySet;

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Service("iFileService")
 public class FileServiceImpl implements IFileService {
 
-    private Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
+    private final static Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
 
     public String upload(MultipartFile file, String path) {
 
